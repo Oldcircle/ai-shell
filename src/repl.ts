@@ -8,7 +8,7 @@
  * - Ctrl+C 中断 + 历史 + 命令系统
  */
 
-import { createInterface } from "node:readline"
+import { createInterface, moveCursor, clearLine } from "node:readline"
 import chalk from "chalk"
 import type { Provider } from "./providers/types"
 import type { Tool } from "./core/tool"
@@ -135,8 +135,9 @@ export async function startRepl(options: ReplOptions): Promise<void> {
 				abortSignal: abortController.signal,
 			})
 
-			let hasStreamedText = false
+			let streamedLines = 0 // 追踪已输出的行数（用于清屏重绘）
 			let fullResponseText = ""
+			let currentSegmentText = "" // 当前文本段（工具调用之间的文本）
 			const toolTimers = new Map<string, number>()
 			console.log() // 空行分隔
 
@@ -145,28 +146,32 @@ export async function startRepl(options: ReplOptions): Promise<void> {
 
 				switch (event.type) {
 					case "text":
-						// 流式逐字符输出
+						// 流式逐字符输出（原始文本，后续替换为 markdown）
 						process.stdout.write(event.text)
+						currentSegmentText += event.text
 						fullResponseText += event.text
-						hasStreamedText = true
+						// 统计行数
+						const newlines = (event.text.match(/\n/g) ?? []).length
+						streamedLines += newlines
 						break
 
 					case "thinking":
-						// thinking 不流式输出，只显示指示
-						if (!hasStreamedText) {
+						if (!currentSegmentText) {
 							process.stdout.write(chalk.dim("  thinking...\r"))
 						}
 						break
 
 					case "tool_start": {
-						// 如果之前有文本输出，先换行
-						if (hasStreamedText) {
-							process.stdout.write("\n")
-							hasStreamedText = false
+						// 文本段结束 → 清除原始文本，替换为 markdown 渲染版本
+						if (currentSegmentText) {
+							clearLines(streamedLines + 1)
+							const rendered = renderMarkdown(currentSegmentText).trimEnd()
+							console.log(rendered)
+							currentSegmentText = ""
+							streamedLines = 0
 						}
 						toolTimers.set(event.toolId, Date.now())
 
-						// 格式化工具调用展示
 						const desc = formatToolDesc(event.toolName, event.input)
 						process.stdout.write(
 							`${chalk.cyan("  ⚡")} ${chalk.cyan(event.toolName)} ${chalk.dim(desc)} `,
@@ -181,7 +186,6 @@ export async function startRepl(options: ReplOptions): Promise<void> {
 
 						if (event.result.isError) {
 							console.log(chalk.red(`✗ ${ms}ms`))
-							// 错误时显示简要内容
 							const preview = event.result.content.split("\n")[0].slice(0, 120)
 							console.log(chalk.red(`    ${preview}`))
 						} else {
@@ -200,8 +204,13 @@ export async function startRepl(options: ReplOptions): Promise<void> {
 						const oc = (event.usage.outputTokens / 1_000_000) * 15
 						totalCost += ic + oc
 
-						if (hasStreamedText) {
-							process.stdout.write("\n")
+						// 最后一段文本 → markdown 渲染替换
+						if (currentSegmentText) {
+							clearLines(streamedLines + 1)
+							const rendered = renderMarkdown(currentSegmentText).trimEnd()
+							console.log(rendered)
+							currentSegmentText = ""
+							streamedLines = 0
 						}
 
 						// 状态栏
@@ -280,4 +289,17 @@ function formatToolDesc(
 		default:
 			return JSON.stringify(input).slice(0, 80)
 	}
+}
+
+// ─── 终端清屏辅助 ───
+
+/**
+ * 清除终端中最近 n 行的输出。
+ * 用于将流式原始文本替换为 markdown 渲染版本。
+ */
+function clearLines(n: number): void {
+	if (n <= 0) return
+	// 移动光标到第一行开头，然后清除到屏幕底部
+	moveCursor(process.stdout, 0, -n)
+	process.stdout.write("\x1b[0J")
 }
