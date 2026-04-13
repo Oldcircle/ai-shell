@@ -112,6 +112,13 @@ bun run format            # 格式化
 - 源码参考: `/Users/yb/Opensource/vendor/claude-code-ref`
 - 这是学习项目，代码完全重写，不复制粘贴
 
+## 首次发布记录
+
+- **GitHub**: https://github.com/Oldcircle/ai-shell
+- **可见性**: public
+- **日期**: 2026-04-13
+- **默认分支**: main
+
 ## 活跃文档
 
 - `PLAN.md` — 分阶段开发计划
