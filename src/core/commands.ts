@@ -19,6 +19,8 @@ export interface CommandResult {
 	newMessages?: Message[]
 	/** 切换模型 */
 	newModel?: string
+	/** 重置会话状态（readFiles、caches 等）*/
+	resetState?: boolean
 	/** 是否应该退出 */
 	exit?: boolean
 }
@@ -134,8 +136,9 @@ async function handleHelp(): Promise<CommandResult> {
 
 async function handleClear(): Promise<CommandResult> {
 	return {
-		output: "Conversation cleared.",
+		output: "Conversation cleared. Session state reset.",
 		newMessages: [],
+		resetState: true,
 	}
 }
 

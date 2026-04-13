@@ -6,12 +6,12 @@ Phase 7 完成（全部 7 个 Phase）
 
 ## 项目数据
 
-- **34 源文件，5590 行代码**
-- **13 测试文件，971 行测试代码**
-- **89 unit tests + expect 集成测试 / 0 fail**
+- **35 源文件，6198 行代码**
+- **14 测试文件，1050+ 行测试代码**
+- **94 unit tests + expect 集成测试 / 0 fail**
 - TypeScript strict 零错误
 - DeepSeek 实机全功能验证
-- expect 集成测试：REPL 启动 → /help → /context → /model → AI 对话 + Read 工具 → /cost → /exit 全通过
+- 20/20 Claude Code UX 差距项已修复（见 docs/claude-code-ux-gaps.md）
 
 ## 功能全景
 

@@ -215,6 +215,13 @@ export async function* query(params: QueryParams): AsyncGenerator<QueryEvent> {
 		}
 		contentBlocks.push(...toolUses)
 
+		// 空响应保护：如果 assistant 没返回任何内容，不追加空消息
+		// （防止 Anthropic API "role must alternate" 错误）
+		if (contentBlocks.length === 0) {
+			yield { type: "done", usage: totalUsage, messages }
+			return
+		}
+
 		const assistantMessage: AssistantMessage = {
 			role: "assistant",
 			content: contentBlocks.length === 1 && contentBlocks[0].type === "text"

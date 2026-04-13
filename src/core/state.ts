@@ -115,12 +115,19 @@ export function accumulateUsage(store: AppStore, usage: TokenUsage): void {
 
 /** 每百万 token 价格（美元）*/
 const PRICING: Record<string, { input: number; output: number }> = {
+	// Anthropic
 	"claude-sonnet-4-20250514": { input: 3, output: 15 },
 	"claude-opus-4-20250514": { input: 15, output: 75 },
 	"claude-haiku-4-5-20251001": { input: 0.8, output: 4 },
+	// DeepSeek
+	"deepseek-chat": { input: 0.14, output: 0.28 },
+	"deepseek-reasoner": { input: 0.55, output: 2.19 },
+	// OpenAI
+	"gpt-4o": { input: 2.5, output: 10 },
+	"gpt-4o-mini": { input: 0.15, output: 0.6 },
 }
 
-function calculateCost(usage: TokenUsage, model: string): number {
+export function calculateCost(usage: TokenUsage, model: string): number {
 	const prices = PRICING[model] ?? PRICING["claude-sonnet-4-20250514"]
 	const inputCost = (usage.inputTokens / 1_000_000) * prices.input
 	const outputCost = (usage.outputTokens / 1_000_000) * prices.output

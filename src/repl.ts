@@ -21,6 +21,7 @@ import type { TokenUsage } from "./providers/types"
 import { query } from "./query"
 import { isCommand, executeCommand } from "./core/commands"
 import { autoCompact } from "./core/compact"
+import { calculateCost } from "./core/state"
 import { saveSession, generateSessionId } from "./config/session"
 import { renderMarkdown } from "./utils/markdown"
 
@@ -151,6 +152,9 @@ export async function startRepl(options: ReplOptions): Promise<void> {
 			console.log(result.output)
 			if (result.newMessages !== undefined) {
 				messages = result.newMessages
+			}
+			if (result.resetState) {
+				sessionReadFiles.clear()
 			}
 			if (result.newModel) {
 				model = result.newModel
@@ -290,9 +294,7 @@ export async function startRepl(options: ReplOptions): Promise<void> {
 							inputTokens: totalUsage.inputTokens + event.usage.inputTokens,
 							outputTokens: totalUsage.outputTokens + event.usage.outputTokens,
 						}
-						const ic = (event.usage.inputTokens / 1_000_000) * 3
-						const oc = (event.usage.outputTokens / 1_000_000) * 15
-						totalCost += ic + oc
+						totalCost += calculateCost(event.usage, model)
 
 						// thinking 耗时（如果还没显示）
 						if (thinkingStart) {
