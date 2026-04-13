@@ -152,12 +152,12 @@ export function getGitStatus(cwd: string): string | null {
 			.toString()
 			.trim()
 
-		// 主分支名称
+		// 主分支名称（纯本地检测，不访问网络）
 		let mainBranch = "main"
 		try {
 			const remote = execSync(
-				"git remote show origin 2>/dev/null | grep 'HEAD branch' | awk '{print $NF}'",
-				{ cwd, stdio: ["ignore", "pipe", "ignore"], timeout: 5000 },
+				"git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@'",
+				{ cwd, stdio: ["ignore", "pipe", "ignore"], timeout: 2000 },
 			)
 				.toString()
 				.trim()

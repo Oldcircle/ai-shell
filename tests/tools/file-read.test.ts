@@ -21,7 +21,7 @@ describe("FileReadTool", () => {
 	test("reads a file with line numbers", async () => {
 		const result = await FileReadTool.call(
 			{ file_path: TEST_FILE },
-			{ cwd: TEST_DIR },
+			{ cwd: TEST_DIR, readFiles: new Set() },
 		)
 		expect(result.isError).toBeUndefined()
 		expect(result.content).toContain("1\tLine 1: content")
@@ -31,7 +31,7 @@ describe("FileReadTool", () => {
 	test("respects offset", async () => {
 		const result = await FileReadTool.call(
 			{ file_path: TEST_FILE, offset: 10 },
-			{ cwd: TEST_DIR },
+			{ cwd: TEST_DIR, readFiles: new Set() },
 		)
 		expect(result.content).toContain("11\tLine 11: content")
 		expect(result.content).not.toContain("1\tLine 1: content")
@@ -40,7 +40,7 @@ describe("FileReadTool", () => {
 	test("respects limit", async () => {
 		const result = await FileReadTool.call(
 			{ file_path: TEST_FILE, limit: 5 },
-			{ cwd: TEST_DIR },
+			{ cwd: TEST_DIR, readFiles: new Set() },
 		)
 		const lines = result.content.split("\n")
 		// 5 content lines + "... (X more lines)" footer
@@ -50,7 +50,7 @@ describe("FileReadTool", () => {
 	test("handles missing file", async () => {
 		const result = await FileReadTool.call(
 			{ file_path: join(TEST_DIR, "nonexistent.txt") },
-			{ cwd: TEST_DIR },
+			{ cwd: TEST_DIR, readFiles: new Set() },
 		)
 		expect(result.isError).toBe(true)
 		expect(result.content).toContain("File not found")
@@ -59,7 +59,7 @@ describe("FileReadTool", () => {
 	test("handles directory path", async () => {
 		const result = await FileReadTool.call(
 			{ file_path: TEST_DIR },
-			{ cwd: TEST_DIR },
+			{ cwd: TEST_DIR, readFiles: new Set() },
 		)
 		expect(result.isError).toBe(true)
 		expect(result.content).toContain("directory")

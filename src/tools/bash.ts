@@ -196,8 +196,12 @@ export const BashTool = buildTool<Input>({
 		// ─── 前台执行 ───
 		const timeout = Math.min(input.timeout ?? DEFAULT_TIMEOUT, MAX_TIMEOUT)
 
+		// 追加 pwd 输出以检测 cd 后的工作目录变更
+		const CWD_MARKER = "__AISHELL_CWD__"
+		const wrappedCommand = `${input.command}\n__exit_code=$?\necho "${CWD_MARKER}$(pwd)"\nexit $__exit_code`
+
 		return new Promise<{ content: string; isError?: boolean }>((resolve) => {
-			const proc = spawn("bash", ["-c", input.command], {
+			const proc = spawn("bash", ["-c", wrappedCommand], {
 				cwd: context.cwd,
 				env: {
 					...process.env,
@@ -235,6 +239,17 @@ export const BashTool = buildTool<Input>({
 			})
 
 			proc.on("close", (code) => {
+				// 提取 CWD 标记并更新 context
+				const cwdIdx = stdout.lastIndexOf(CWD_MARKER)
+				if (cwdIdx !== -1) {
+					const newCwd = stdout.slice(cwdIdx + CWD_MARKER.length).trim()
+					if (newCwd && newCwd !== context.cwd) {
+						context.cwd = newCwd
+					}
+					// 从输出中移除 CWD 标记行
+					stdout = stdout.slice(0, cwdIdx).trimEnd()
+				}
+
 				let content = ""
 				if (stdout) content += stdout
 				if (stderr) content += (content ? "\n" : "") + stderr

@@ -210,7 +210,7 @@ export function App({
 					systemPrompt,
 					messages: currentMessages,
 					tools,
-					toolContext: { cwd },
+					toolContext: { cwd, readFiles: new Set() },
 					abortSignal: abortController.signal,
 				})
 

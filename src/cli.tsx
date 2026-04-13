@@ -175,7 +175,7 @@ async function runPipeMode(params: PipeModeParams) {
 		systemPrompt: params.systemPrompt,
 		messages: [createUserMessage(params.input)],
 		tools: params.tools,
-		toolContext: { cwd: params.cwd },
+		toolContext: { cwd: params.cwd, readFiles: new Set() },
 	})
 
 	for await (const event of events) {

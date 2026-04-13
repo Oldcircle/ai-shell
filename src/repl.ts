@@ -37,6 +37,7 @@ export async function startRepl(options: ReplOptions): Promise<void> {
 	let totalUsage: TokenUsage = { inputTokens: 0, outputTokens: 0 }
 	let totalCost = 0
 	let isProcessing = false
+	const sessionReadFiles = new Set<string>()
 
 	const rl = createInterface({
 		input: process.stdin,
@@ -130,7 +131,7 @@ export async function startRepl(options: ReplOptions): Promise<void> {
 				systemPrompt,
 				messages,
 				tools,
-				toolContext: { cwd },
+				toolContext: { cwd, readFiles: sessionReadFiles },
 				abortSignal: abortController.signal,
 			})
 

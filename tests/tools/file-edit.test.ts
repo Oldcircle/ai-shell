@@ -21,7 +21,7 @@ describe("FileEditTool", () => {
 		await writeFile(TEST_FILE, "Hello World\nFoo Bar\n")
 		const result = await FileEditTool.call(
 			{ file_path: TEST_FILE, old_string: "Foo Bar", new_string: "Baz Qux", replace_all: false },
-			{ cwd: TEST_DIR },
+			{ cwd: TEST_DIR, readFiles: new Set() },
 		)
 		expect(result.isError).toBeUndefined()
 		const content = await readFile(TEST_FILE, "utf-8")
@@ -32,7 +32,7 @@ describe("FileEditTool", () => {
 		await writeFile(TEST_FILE, "aaa\nbbb\naaa\n")
 		const result = await FileEditTool.call(
 			{ file_path: TEST_FILE, old_string: "aaa", new_string: "ccc", replace_all: false },
-			{ cwd: TEST_DIR },
+			{ cwd: TEST_DIR, readFiles: new Set() },
 		)
 		expect(result.isError).toBe(true)
 		expect(result.content).toContain("2 times")
@@ -42,7 +42,7 @@ describe("FileEditTool", () => {
 		await writeFile(TEST_FILE, "aaa\nbbb\naaa\n")
 		const result = await FileEditTool.call(
 			{ file_path: TEST_FILE, old_string: "aaa", new_string: "ccc", replace_all: true },
-			{ cwd: TEST_DIR },
+			{ cwd: TEST_DIR, readFiles: new Set() },
 		)
 		expect(result.isError).toBeUndefined()
 		const content = await readFile(TEST_FILE, "utf-8")
@@ -53,7 +53,7 @@ describe("FileEditTool", () => {
 		await writeFile(TEST_FILE, "Hello World\n")
 		const result = await FileEditTool.call(
 			{ file_path: TEST_FILE, old_string: "not here", new_string: "xxx", replace_all: false },
-			{ cwd: TEST_DIR },
+			{ cwd: TEST_DIR, readFiles: new Set() },
 		)
 		expect(result.isError).toBe(true)
 		expect(result.content).toContain("not found")
@@ -62,7 +62,7 @@ describe("FileEditTool", () => {
 	test("fails when old and new are identical", async () => {
 		const result = await FileEditTool.call(
 			{ file_path: TEST_FILE, old_string: "same", new_string: "same", replace_all: false },
-			{ cwd: TEST_DIR },
+			{ cwd: TEST_DIR, readFiles: new Set() },
 		)
 		expect(result.isError).toBe(true)
 	})
@@ -75,7 +75,7 @@ describe("FileEditTool", () => {
 				new_string: "b",
 				replace_all: false,
 			},
-			{ cwd: TEST_DIR },
+			{ cwd: TEST_DIR, readFiles: new Set() },
 		)
 		expect(result.isError).toBe(true)
 		expect(result.content).toContain("File not found")

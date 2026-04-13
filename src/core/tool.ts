@@ -36,10 +36,12 @@ export interface ToolResult {
 // ─── 工具执行上下文 ───
 
 export interface ToolUseContext {
-	/** 当前工作目录 */
+	/** 当前工作目录（Bash 执行后可能变更） */
 	cwd: string
 	/** 是否处于只读模式 */
 	readOnly?: boolean
+	/** 本会话中已读取的文件路径集合（防止盲覆写） */
+	readFiles: Set<string>
 }
 
 // ─── Tool 接口 ───

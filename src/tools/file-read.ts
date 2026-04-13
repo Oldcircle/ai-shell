@@ -69,6 +69,10 @@ export const FileReadTool = buildTool<Input>({
 			}
 
 			const content = await readFile(filePath, "utf-8")
+
+			// 记录已读文件（供 FileWrite 安全检查）
+			context.readFiles.add(filePath)
+
 			const lines = content.split("\n")
 			const selectedLines = lines.slice(offset, offset + limit)
 

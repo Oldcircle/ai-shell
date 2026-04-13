@@ -24,7 +24,7 @@ describe("buildTool", () => {
 	test("call() works", async () => {
 		const result = await TestTool.call(
 			{ value: "hello" },
-			{ cwd: "/tmp" },
+			{ cwd: "/tmp", readFiles: new Set() },
 		)
 		expect(result.content).toBe("Got: hello")
 		expect(result.isError).toBeUndefined()

@@ -277,9 +277,18 @@ export async function* query(params: QueryParams): AsyncGenerator<QueryEvent> {
 				}
 			}
 
+			// 截断过大的工具结果，防止上下文爆炸
+			const MAX_RESULT_CHARS = 100_000
+			let content = result.content
+			if (content.length > MAX_RESULT_CHARS) {
+				content =
+					content.slice(0, MAX_RESULT_CHARS) +
+					`\n\n... (truncated: ${content.length - MAX_RESULT_CHARS} chars omitted. Use offset/limit to read specific portions.)`
+			}
+
 			return {
 				toolUseId: toolUse.id,
-				content: result.content,
+				content,
 				isError: result.isError ?? false,
 			}
 		}
