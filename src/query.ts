@@ -43,6 +43,7 @@ export interface QueryToolEndEvent {
 	type: "tool_end"
 	toolName: string
 	toolId: string
+	input: Record<string, unknown>
 	result: ToolResult
 }
 
@@ -306,6 +307,7 @@ export async function* query(params: QueryParams): AsyncGenerator<QueryEvent> {
 					type: "tool_end",
 					toolName: concurrentUses[i].name,
 					toolId: concurrentUses[i].id,
+					input: concurrentUses[i].input,
 					result: { content: concurrentResults[i].content, isError: concurrentResults[i].isError },
 				}
 			}
@@ -320,6 +322,7 @@ export async function* query(params: QueryParams): AsyncGenerator<QueryEvent> {
 				type: "tool_end",
 				toolName: toolUse.name,
 				toolId: toolUse.id,
+				input: toolUse.input,
 				result: { content: tr.content, isError: tr.isError },
 			}
 			toolResults.push(tr)

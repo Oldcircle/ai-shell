@@ -191,6 +191,14 @@ export async function startRepl(options: ReplOptions): Promise<void> {
 						} else {
 							console.log(chalk.green(`✓ ${ms}ms`))
 						}
+
+						// 显示工具结果详情（diff、文件内容等）
+						renderToolDetail(
+							event.toolName,
+							event.input,
+							event.result.content,
+							event.result.isError ?? false,
+						)
 						break
 					}
 
@@ -288,6 +296,108 @@ function formatToolDesc(
 			return String(input.description ?? String(input.prompt ?? "").slice(0, 60))
 		default:
 			return JSON.stringify(input).slice(0, 80)
+	}
+}
+
+// ─── 工具结果详情渲染 ───
+
+/**
+ * 按工具类型显示有意义的结果详情。
+ * 参考 Claude Code：Edit 显示 diff，Write 显示内容，Bash 显示输出。
+ */
+function renderToolDetail(
+	toolName: string,
+	input: Record<string, unknown>,
+	content: string,
+	isError: boolean,
+): void {
+	if (isError) return // 错误已经在上面显示了
+
+	const MAX_PREVIEW_LINES = 15
+
+	switch (toolName) {
+		case "Edit": {
+			// 显示红绿 diff
+			const oldStr = String(input.old_string ?? "")
+			const newStr = String(input.new_string ?? "")
+			if (oldStr && newStr) {
+				const oldLines = oldStr.split("\n")
+				const newLines = newStr.split("\n")
+				console.log(chalk.dim("    ┌─ diff ─"))
+				for (const line of oldLines.slice(0, MAX_PREVIEW_LINES)) {
+					console.log(chalk.red(`    │ - ${line}`))
+				}
+				if (oldLines.length > MAX_PREVIEW_LINES) {
+					console.log(chalk.dim(`    │   ... +${oldLines.length - MAX_PREVIEW_LINES} lines`))
+				}
+				for (const line of newLines.slice(0, MAX_PREVIEW_LINES)) {
+					console.log(chalk.green(`    │ + ${line}`))
+				}
+				if (newLines.length > MAX_PREVIEW_LINES) {
+					console.log(chalk.dim(`    │   ... +${newLines.length - MAX_PREVIEW_LINES} lines`))
+				}
+				console.log(chalk.dim("    └─"))
+			}
+			break
+		}
+
+		case "Write": {
+			// 显示写入的文件内容预览
+			const fileContent = String(input.content ?? "")
+			const lines = fileContent.split("\n")
+			const preview = lines.slice(0, 10)
+			console.log(chalk.dim(`    ┌─ ${lines.length} lines written ─`))
+			for (const line of preview) {
+				console.log(chalk.dim(`    │ `) + line)
+			}
+			if (lines.length > 10) {
+				console.log(chalk.dim(`    │ ... +${lines.length - 10} more lines`))
+			}
+			console.log(chalk.dim("    └─"))
+			break
+		}
+
+		case "Bash": {
+			// 显示命令输出预览
+			if (content && content !== "(no output)") {
+				const lines = content.split("\n")
+				const preview = lines.slice(0, 8)
+				for (const line of preview) {
+					console.log(chalk.dim(`    ${line}`))
+				}
+				if (lines.length > 8) {
+					console.log(chalk.dim(`    ... (${lines.length} lines total)`))
+				}
+			}
+			break
+		}
+
+		case "Read": {
+			// 读取结果只显示行数
+			const lines = content.split("\n").length
+			console.log(chalk.dim(`    ${lines} lines`))
+			break
+		}
+
+		case "Grep": {
+			// 显示匹配数
+			const lines = content.split("\n").filter(Boolean)
+			if (lines.length > 0 && content !== "No matches found.") {
+				console.log(chalk.dim(`    ${lines.length} matches`))
+			}
+			break
+		}
+
+		case "Glob": {
+			// 显示文件数
+			const files = content.split("\n").filter(Boolean)
+			if (files.length > 0 && content !== "No files matched the pattern.") {
+				console.log(chalk.dim(`    ${files.length} files`))
+			}
+			break
+		}
+
+		// Agent、其他工具不显示额外详情
 	}
 }
 
