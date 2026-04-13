@@ -72,7 +72,7 @@ export function createAgentTool(
 					messages,
 					tools,
 					toolContext: context,
-					maxTurns: 15, // 子 agent 限制轮次
+					maxTurns: 30, // 子 agent 限制轮次（主对话无限制）
 				})
 
 				for await (const event of events) {

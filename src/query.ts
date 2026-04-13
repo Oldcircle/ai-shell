@@ -84,7 +84,8 @@ export interface QueryParams {
 
 // ─── 核心查询函数 ───
 
-const DEFAULT_MAX_TURNS = 25
+/** Claude Code 默认无限制，只有 --max-turns 才启用 */
+const DEFAULT_MAX_TURNS = Infinity
 
 /**
  * 执行一次完整的查询循环。
@@ -353,9 +354,17 @@ export async function* query(params: QueryParams): AsyncGenerator<QueryEvent> {
 		// 继续循环，LLM 会看到工具结果并继续响应
 	}
 
-	// 超过最大轮次
+	// 超过最大轮次 — 保留所有消息（不丢弃中间结果）
+	yield {
+		type: "done",
+		usage: totalUsage,
+		messages,
+	}
 	yield {
 		type: "error",
-		error: new Error(`Exceeded maximum tool turns (${maxTurns})`),
+		error: new Error(
+			`Reached maximum tool turns (${maxTurns}). ` +
+			"The conversation history is preserved — say 'continue' to resume.",
+		),
 	}
 }
