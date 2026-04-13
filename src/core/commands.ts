@@ -8,6 +8,7 @@ import type { Message } from "./message"
 import type { Provider, TokenUsage } from "../providers/types"
 import { manualCompact } from "./compact"
 import { listSessions } from "../config/session"
+import { getBackgroundTasks, killBackgroundTask } from "../tools/bash"
 import { estimateTotalTokens, getContextWindow, getCompactThreshold } from "../utils/tokens"
 
 /** 命令执行结果 */
@@ -68,9 +69,17 @@ const commands: Record<string, { handler: CommandHandler; help: string }> = {
 		handler: handleHistory,
 		help: "List saved sessions",
 	},
+	tasks: {
+		handler: handleTasks,
+		help: "List background tasks",
+	},
+	kill: {
+		handler: handleKill,
+		help: "Kill a background task (e.g. /kill bg-1)",
+	},
 	exit: {
 		handler: handleExit,
-		help: "Exit AI Shell",
+		help: "Exit AI Shell (kills all background tasks)",
 	},
 	quit: {
 		handler: handleExit,
@@ -257,6 +266,46 @@ async function handleHistory(): Promise<CommandResult> {
 	return { output: lines.join("\n") }
 }
 
+async function handleTasks(): Promise<CommandResult> {
+	const tasks = getBackgroundTasks()
+	if (tasks.length === 0) {
+		return { output: "No background tasks running." }
+	}
+
+	const lines = [
+		"Background tasks:",
+		"",
+		...tasks.map((t) => {
+			const status = t.running ? "running" : "stopped"
+			const dur = Math.round(t.durationMs / 1000)
+			return `  ${t.id}  PID ${t.pid}  ${status}  ${dur}s  ${t.command}`
+		}),
+		"",
+		"Kill with: /kill <task-id>",
+	]
+	return { output: lines.join("\n") }
+}
+
+async function handleKill(args: string): Promise<CommandResult> {
+	if (!args) {
+		return { output: "Usage: /kill <task-id>  (e.g. /kill bg-1)" }
+	}
+	const taskId = args.trim()
+	const killed = killBackgroundTask(taskId)
+	if (killed) {
+		return { output: `Task ${taskId} killed.` }
+	}
+	return { output: `Task not found: ${taskId}` }
+}
+
 async function handleExit(): Promise<CommandResult> {
+	// 杀掉所有后台任务
+	const tasks = getBackgroundTasks()
+	for (const t of tasks) {
+		killBackgroundTask(t.id)
+	}
+	if (tasks.length > 0) {
+		return { output: `Killed ${tasks.length} background task(s). Goodbye!`, exit: true }
+	}
 	return { output: "Goodbye!", exit: true }
 }

@@ -1,0 +1,3 @@
+#!/bin/bash
+# AI Shell 全局启动脚本
+exec bun run /Users/yb/Opensource/projects/cli/ai-shell/src/cli.tsx "$@"

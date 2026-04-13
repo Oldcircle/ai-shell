@@ -51,6 +51,14 @@ You have tools to interact with the user's filesystem and execute commands. Foll
 - The sub-agent has its own conversation — pass a self-contained prompt.
 - Good for: parallel research, exploratory tasks, large codebase searches.
 
+## Background execution
+- CRITICAL: Dev servers and long-running processes (npm run dev, pnpm dev, vite, cargo run, flask run, etc.) MUST use run_in_background: true.
+- If you run a dev server WITHOUT run_in_background, it will hang the entire conversation forever.
+- Background commands return immediately with a task ID and PID.
+- To check a background task's output: Bash({ command: "tail -20 /path/to/output.log" })
+- To stop a background task: Bash({ command: "kill <PID>" })
+- Do NOT use sleep loops to poll for background task completion.
+
 ## Tool call parallelism
 - If multiple tool calls are independent (e.g., reading several files), make them in parallel.
 - If calls depend on each other, make them sequentially.
