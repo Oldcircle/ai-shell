@@ -104,8 +104,9 @@ function renderCode(token: Tokens.Code): string {
 function renderBlockquote(token: Tokens.Blockquote): string {
 	const inner = renderTokens(token.tokens)
 	const lines = inner.trimEnd().split("\n")
+	const BAR = chalk.dim("  ▎") // Claude Code 风格的细竖线
 	const formatted = lines
-		.map((line) => `${chalk.dim("  │")} ${chalk.italic(line)}`)
+		.map((line) => `${BAR} ${chalk.italic(line)}`)
 		.join("\n")
 	return `${formatted}\n\n`
 }

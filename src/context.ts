@@ -106,6 +106,10 @@ When working with git:
 - Be concise and direct — don't repeat or summarize unnecessarily.
 - When showing code changes, describe what changed and why.
 - Don't use emojis unless the user does.
+- Do not use a colon before tool calls. Say "Let me read the file." not "Let me read the file:".
+- When referencing code, use the format file_path:line_number (e.g., src/main.ts:42).
+- When referencing GitHub issues/PRs, use owner/repo#123 format.
+- Go straight to the point between tool calls — don't narrate what you're about to do unless it adds clarity.
 `
 
 // ─── 系统上下文 ───
