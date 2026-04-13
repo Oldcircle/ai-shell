@@ -113,7 +113,12 @@ const SERVER_PATTERNS = [
 	/\bcargo\s+(run|watch)\b/,
 ]
 
+/** 一次性 flag — 带这些的命令不会长驻 */
+const ONE_SHOT_FLAGS = /\s--(help|version|dry-run|check|list|info)\b/
+
 function isLikelyServer(command: string): boolean {
+	// 带 --help 等 flag 的命令不是长驻进程
+	if (ONE_SHOT_FLAGS.test(command)) return false
 	return SERVER_PATTERNS.some((p) => p.test(command))
 }
 

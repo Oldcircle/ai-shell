@@ -251,6 +251,7 @@ export function createOpenAICompatibleProvider(
 						Authorization: `Bearer ${config.apiKey}`,
 					},
 					body: JSON.stringify(body),
+					signal: AbortSignal.timeout(120_000), // 2 分钟 API 超时
 				})
 
 				if (!response.ok) {
