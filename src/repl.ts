@@ -391,6 +391,12 @@ function renderApiError(error: Error): void {
 		console.error(chalk.yellow(`\n  ⚠ Rate limit exceeded`))
 		console.error(chalk.yellow(`    ${error.message}`))
 		console.error(chalk.dim("    Wait a moment and try again."))
+	} else if (msg.includes("402") || msg.includes("insufficient balance") || msg.includes("credit")) {
+		console.error(chalk.red(`\n  ✗ Insufficient balance`))
+		console.error(chalk.dim("    Your API account is out of credits. Top up at:"))
+		console.error(chalk.dim("    • DeepSeek:  https://platform.deepseek.com/billing"))
+		console.error(chalk.dim("    • Anthropic: https://console.anthropic.com/settings/billing"))
+		console.error(chalk.dim("    • OpenAI:    https://platform.openai.com/account/billing"))
 	} else if (msg.includes("401") || msg.includes("unauthorized") || msg.includes("api key")) {
 		console.error(chalk.red(`\n  ✗ Invalid API key`))
 		console.error(chalk.dim("    Check your ANTHROPIC_API_KEY or DEEPSEEK_API_KEY."))

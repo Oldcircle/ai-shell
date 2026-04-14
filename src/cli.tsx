@@ -65,8 +65,16 @@ function createProvider(providerName: string): { provider: Provider; model: stri
 					return createProvider("openai")
 				}
 				console.error(
-					"Error: No API key found.\n" +
-						"Set one of: ANTHROPIC_API_KEY, DEEPSEEK_API_KEY, or OPENAI_API_KEY",
+					"\n  ⚠  No API key found.\n\n" +
+						"  Set one of these environment variables:\n\n" +
+						"    \x1b[36mANTHROPIC_API_KEY\x1b[0m   Get one at https://console.anthropic.com\n" +
+						"    \x1b[36mDEEPSEEK_API_KEY\x1b[0m    Get one at https://platform.deepseek.com\n" +
+						"    \x1b[36mOPENAI_API_KEY\x1b[0m      Get one at https://platform.openai.com\n\n" +
+						"  Quick start with DeepSeek (cheapest):\n\n" +
+						"    export DEEPSEEK_API_KEY=sk-...\n" +
+						"    ai-shell\n\n" +
+						"  Or save it permanently in \x1b[36m~/.ai-shell/config.json\x1b[0m:\n\n" +
+						'    {"provider":"deepseek","apiKeys":{"deepseek":"sk-..."}}\n',
 				)
 				process.exit(1)
 			}

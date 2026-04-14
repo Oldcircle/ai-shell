@@ -68,6 +68,26 @@
 ### 20. ~~/clear 不重置状态~~ ✅
 → 清除 readFiles 集合
 
+## 第三轮深度优化 — 已修复 ✅
+
+### 21. ~~Anthropic Prompt Caching~~ ✅
+→ system prompt + tools 标记 `cache_control: ephemeral`，节省 30-50% 输入 token 费用
+
+### 22. ~~Bash 长命令无进度~~ ✅
+→ 3 秒以上命令每秒显示 `… N lines · Ns elapsed`（写 stderr，不污染返回值）
+
+### 23. ~~缺失 API key 错误不友好~~ ✅
+→ 列出三个 provider 的注册链接 + quick start + 配置文件示例
+
+### 24. ~~402 Insufficient Balance 未识别~~ ✅
+→ 新增错误分类，列出三家计费页面链接
+
+### 25. ~~server 检测误判 `--help`~~ ✅
+→ `--help/--version/--dry-run/--check` 等一次性 flag 排除
+
+### 26. ~~API 无超时导致 hang~~ ✅
+→ OpenAI-compatible provider 加 2 分钟 fetch timeout
+
 ## 待实现（P3 后续）
 
 - [ ] 代码块语法高亮（cli-highlight 已安装，需集成）

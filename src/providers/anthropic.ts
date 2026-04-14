@@ -54,18 +54,33 @@ export function createAnthropicProvider(): Provider {
 			const messages = toAPIMessages(request.messages)
 			const maxTokens = request.maxTokens ?? this.getMaxOutputTokens(request.model)
 
-			// 构建请求参数
+			// ─── 构建请求参数（含 prompt caching）───
+			// 系统提示词标记为 ephemeral，Anthropic 会缓存它（5分钟 TTL）
+			// 节省 30-50% 的输入 token 费用
 			const params: Anthropic.MessageCreateParams = {
 				model: request.model,
 				max_tokens: maxTokens,
-				system: request.systemPrompt,
+				system: [
+					{
+						type: "text",
+						text: request.systemPrompt,
+						cache_control: { type: "ephemeral" },
+					},
+				],
 				messages,
 				stream: true,
 			}
 
-			// 添加工具
+			// 添加工具（最后一个工具标记 cache_control，缓存整个工具列表）
 			if (request.tools && request.tools.length > 0) {
-				params.tools = request.tools.map(toolSchemaToAnthropic)
+				const apiTools = request.tools.map(toolSchemaToAnthropic)
+				if (apiTools.length > 0) {
+					const lastTool = apiTools[apiTools.length - 1]
+					;(lastTool as unknown as Record<string, unknown>).cache_control = {
+						type: "ephemeral",
+					}
+				}
+				params.tools = apiTools
 			}
 
 			// 温度

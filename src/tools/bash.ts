@@ -222,12 +222,26 @@ export const BashTool = buildTool<Input>({
 			let stderr = ""
 			let outputSize = 0
 			let truncated = false
+			let lineCount = 0
+			const startTime = Date.now()
+
+			// 长命令进度显示：每秒显示一次行数和耗时
+			const progressTimer = setInterval(() => {
+				const elapsed = Math.floor((Date.now() - startTime) / 1000)
+				if (elapsed >= 3) {
+					// 3 秒以上才显示进度，避免打扰快命令
+					process.stderr.write(
+						`\r\x1b[2K\x1b[2m  … ${lineCount} lines · ${elapsed}s elapsed\x1b[0m`,
+					)
+				}
+			}, 1000)
 
 			proc.stdout.on("data", (chunk: Buffer) => {
 				const text = chunk.toString()
 				outputSize += text.length
 				if (outputSize <= MAX_OUTPUT_SIZE) {
 					stdout += text
+					lineCount += (text.match(/\n/g) ?? []).length
 				} else {
 					truncated = true
 				}
@@ -238,12 +252,17 @@ export const BashTool = buildTool<Input>({
 				outputSize += text.length
 				if (outputSize <= MAX_OUTPUT_SIZE) {
 					stderr += text
+					lineCount += (text.match(/\n/g) ?? []).length
 				} else {
 					truncated = true
 				}
 			})
 
 			proc.on("close", (code) => {
+				// 清除进度指示器
+				clearInterval(progressTimer)
+				process.stderr.write("\r\x1b[2K")
+
 				// 提取 CWD 标记并更新 context
 				const cwdIdx = stdout.lastIndexOf(CWD_MARKER)
 				if (cwdIdx !== -1) {
@@ -275,6 +294,8 @@ export const BashTool = buildTool<Input>({
 			})
 
 			proc.on("error", (error) => {
+				clearInterval(progressTimer)
+				process.stderr.write("\r\x1b[2K")
 				resolve({
 					content: `Failed to execute command: ${error.message}`,
 					isError: true,
